@@ -1,0 +1,71 @@
+name: ci
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16.1-alpine
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: database
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:latest
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    strategy:
+      matrix:
+        python-version: ["3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Configure Poetry
+        run: poetry config virtualenvs.in-project true
+      - name: Install deps
+        run: poetry install --no-interaction --no-root
+      - name: Lint (ruff)
+        run: |
+          poetry run ruff check --config pyproject.toml
+      - name: Lint (black)
+        run: |
+          poetry run black --check --config pyproject.toml .
+      - name: Type check (mypy)
+        run: poetry run mypy --config-file pyproject.toml src tests
+      - name: Tests
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: database
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_PASSWORD: ""
+        run: poetry run pytest --cov=acme_app --cov-report=xml
+      - name: Security (bandit)
+        run: poetry run bandit -ll -q -r src
+      - name: Vulnerabilities (pip-audit)
+        run: poetry run pip-audit -r <(poetry export -f requirements.txt --without-hashes)

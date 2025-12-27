@@ -1,0 +1,16 @@
+.env
+db.sqlite3
+
+# Venv
+venv
+.venv
+.python-version
+
+# Docker
+docker
+/storage/
+
+# IDE
+.idea
+
+/tests/functional/.env_test
