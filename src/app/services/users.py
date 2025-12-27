@@ -54,7 +54,7 @@ class BlacklistJWTStrategy(JWTStrategy[UP, ID]):
     async def destroy_token(self, token: str, user: UP) -> None:
         pg_provider = get_postgres_provider()
         if pg_provider.async_session_maker is None:
-            return None
+            return
         async with pg_provider.async_session_maker() as session:
             result = await session.execute(
                 select(RevokedToken).where(RevokedToken.token == token)
@@ -62,7 +62,6 @@ class BlacklistJWTStrategy(JWTStrategy[UP, ID]):
             existing = result.scalar_one_or_none()
             if existing:
                 return
-
             revoked = RevokedToken(token=token, user_id=user.id)
             session.add(revoked)
             await session.commit()
