@@ -67,11 +67,15 @@ async def test_register_user_invalid_email(
     }
     response = await getattr(async_client, method)(url, json=payload)
 
-    assert (
-        response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-    ), ERROR_INFO.format(
-        method=method, url=url, status=HTTPStatus.UNPROCESSABLE_ENTITY
+    # fmt: off
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY, (
+        ERROR_INFO.format(
+            method=method,
+            url=url,
+            status=HTTPStatus.UNPROCESSABLE_ENTITY,
+        )
     )
+    # fmt: on
 
 
 @pytest.mark.asyncio

@@ -66,7 +66,7 @@ target-version = "py313"
 line-length = 79
 src = ["src", "tests"]
 lint.select = ["E","F","W","I","UP","B","C4","PIE","SIM","PT","PL","Q","RUF"]
-lint.ignore = ["E501", "UP032", "B008"]
+lint.ignore = ["E501", "UP032", "B008", "RUF003"]
 lint.unfixable = ["F401"]
 exclude = [
   "alembic",
@@ -75,6 +75,7 @@ exclude = [
 [tool.ruff.lint.isort]
 known-first-party = ["acme_app"]
 combine-as-imports = true
+
 
 # --- Black (стабильное форматирование) ---
 [tool.black]
