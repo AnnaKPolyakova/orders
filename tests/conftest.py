@@ -5,12 +5,22 @@ import pytest
 import redis
 from asgi_lifespan import LifespanManager
 from fastapi import FastAPI
+from fastapi_users.db import SQLAlchemyUserDatabase
 from httpx import ASGITransport
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from src.app.core.config import Settings
+from src.app.db.postgres import get_postgres_provider
 from src.app.main import create_app
-from src.app.models.db_models import Base
+from src.app.models.db_models import Base, User
+from src.app.services.users import (
+    BlacklistJWTStrategy,
+    UserManager,
+    get_jwt_strategy,
+    get_refresh_strategy,
+)
+
+from tests.factory import UserFactory
 
 ERROR_INFO = "Error for method: {method}, url: {url}, status: {status}"
 settings = Settings()
@@ -101,3 +111,61 @@ async def async_client(test_app: FastAPI) -> AsyncGenerator[httpx.AsyncClient]:
             transport=transport, base_url="http://test"
         ) as client:
             yield client
+
+
+@pytest.fixture
+async def db_session() -> AsyncGenerator[AsyncSession]:
+    """Фикстура для получения сессии БД."""
+    pg_provider = get_postgres_provider(test=True)
+    await pg_provider.connect()
+    if pg_provider.async_session_maker is None:
+        return
+    async with pg_provider.async_session_maker() as session:
+        yield session
+
+
+@pytest.fixture
+async def user_manager(
+    db_session: AsyncSession,
+) -> UserManager[User]:
+    """Фикстура для получения UserManager."""
+    user_db: SQLAlchemyUserDatabase[User, int] = SQLAlchemyUserDatabase(
+        db_session, User
+    )
+    manager: UserManager[User] = UserManager(user_db)
+    return manager
+
+
+@pytest.fixture
+async def user(
+    user_manager: UserManager[User],
+    db_session: AsyncSession,
+) -> User:
+    """Фикстура для создания тестового пользователя."""
+    user: User = UserFactory.build()
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest.fixture
+async def access_token(
+    user_manager: UserManager[User],
+    db_session: AsyncSession,
+    user: User,
+) -> str:
+    """Фикстура для создания тестового пользователя."""
+    strategy: BlacklistJWTStrategy[User, int] = get_jwt_strategy()
+    return await strategy.write_token(user)
+
+
+@pytest.fixture
+async def refresh_token(
+    user_manager: UserManager[User],
+    db_session: AsyncSession,
+    user: User,
+) -> str:
+    """Фикстура для создания тестового пользователя."""
+    strategy: BlacklistJWTStrategy[User, int] = get_refresh_strategy()
+    return await strategy.write_token(user)
