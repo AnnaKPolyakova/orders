@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import AsyncGenerator, Generator
 
 import httpx
@@ -12,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from src.app.core.config import Settings
 from src.app.db.postgres import get_postgres_provider
 from src.app.main import create_app
-from src.app.models.db_models import Base, User
+from src.app.models.db_models import Base, CatalogItem, User
 from src.app.services.users import (
     BlacklistJWTStrategy,
     UserManager,
@@ -20,7 +21,7 @@ from src.app.services.users import (
     get_refresh_strategy,
 )
 
-from tests.factory import UserFactory
+from tests.factory import CatalogItemFactory, UserFactory
 
 ERROR_INFO = "Error for method: {method}, url: {url}, status: {status}"
 settings = Settings()
@@ -96,13 +97,13 @@ def redis_db() -> Generator[redis.Redis]:  # type: ignore[type-arg]
     client.flushdb()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="session", autouse=True)
 async def test_app() -> FastAPI:
     app_instance = create_app(test=True)
     return app_instance
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 async def async_client(test_app: FastAPI) -> AsyncGenerator[httpx.AsyncClient]:
     # LifespanManager гарантированно вызывает startup/shutdown
     async with LifespanManager(test_app):
@@ -113,7 +114,7 @@ async def async_client(test_app: FastAPI) -> AsyncGenerator[httpx.AsyncClient]:
             yield client
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 async def db_session() -> AsyncGenerator[AsyncSession]:
     """Фикстура для получения сессии БД."""
     pg_provider = get_postgres_provider(test=True)
@@ -122,6 +123,14 @@ async def db_session() -> AsyncGenerator[AsyncSession]:
         return
     async with pg_provider.async_session_maker() as session:
         yield session
+
+
+@pytest.fixture(autouse=True)
+def event_loop():
+    """Создаём один loop на всю сессию pytest."""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest.fixture
@@ -169,3 +178,27 @@ async def refresh_token(
     """Фикстура для создания тестового пользователя."""
     strategy: BlacklistJWTStrategy[User, int] = get_refresh_strategy()
     return await strategy.write_token(user)
+
+
+@pytest.fixture
+async def catalog_item(
+    db_session: AsyncSession,
+) -> CatalogItem:
+    """Фикстура для создания тестового элемента каталога."""
+    catalog_item: CatalogItem = CatalogItemFactory.build()
+    db_session.add(catalog_item)
+    await db_session.commit()
+    await db_session.refresh(catalog_item)
+    return catalog_item
+
+
+@pytest.fixture
+async def catalog_items(
+    db_session: AsyncSession,
+) -> list[CatalogItem]:
+    """Фикстура для создания тестового элемента каталога."""
+    items = CatalogItemFactory.build_batch(50)
+    for item in items:
+        db_session.add(item)
+    await db_session.commit()
+    return items

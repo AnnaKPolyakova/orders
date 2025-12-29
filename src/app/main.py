@@ -6,10 +6,13 @@ from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
 from src.app.api.auth import auth_router
+from src.app.api.catalog import catalog_router
 from src.app.api.ping import ping_router
 from src.app.core.config import settings
 from src.app.db.postgres import get_postgres_provider
 from src.app.db.redis import get_redis_provider
+from src.app.middleware.auth import AuthMiddleware
+from src.app.middleware.logging import LoggingMiddleware
 
 logging.basicConfig(level=settings.APP_LOG_LEVEL)
 logger = logging.getLogger(__name__)
@@ -17,6 +20,7 @@ logger = logging.getLogger(__name__)
 routers = [
     ping_router,
     auth_router,
+    catalog_router,
 ]
 
 
@@ -46,6 +50,12 @@ def create_app(test: bool) -> FastAPI:
         default_response_class=ORJSONResponse,
         lifespan=lifespan,
     )
+    # ---------- Middleware ----------
+    app.add_middleware(
+        AuthMiddleware
+    )  # Must be first to set user in request.state
+    app.add_middleware(LoggingMiddleware)
+
     # ---------- State ----------
     app.state.testing = test  # test mode flag
     for router in routers:

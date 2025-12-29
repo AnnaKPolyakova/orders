@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     REDIS_PASSWORD: str = "redis"
     REDIS_DB: str = "0"
     REDIS_TEST_DB: str = "15"
+    PAGE_SIZE: int = 10
 
     POSTGRES_PASSWORD: str = "password"
     POSTGRES_HOST: str = "localhost"
