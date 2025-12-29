@@ -78,7 +78,7 @@ async def logout_refresh(
     response: Response,
     user: User = Depends(fastapi_users_refresh.current_user(active=True)),
 ) -> Response:
-    # Получаем токен из cookie
+    # Get token from cookie
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
         return Response(401)

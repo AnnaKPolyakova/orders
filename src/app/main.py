@@ -47,7 +47,7 @@ def create_app(test: bool) -> FastAPI:
         lifespan=lifespan,
     )
     # ---------- State ----------
-    app.state.testing = test  # флаг тестового режима
+    app.state.testing = test  # test mode flag
     for router in routers:
         app.include_router(router)
     return app

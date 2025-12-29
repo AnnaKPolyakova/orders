@@ -120,7 +120,7 @@ async def get_user_manager(
 def get_jwt_strategy() -> BlacklistJWTStrategy[UP, ID]:
     return BlacklistJWTStrategy(
         secret=settings.SECRET_KEY,
-        lifetime_seconds=900,  # 15 минут
+        lifetime_seconds=900,  # 15 minutes
         token_audience=["fastapi-users:auth"],
     )
 
@@ -128,7 +128,7 @@ def get_jwt_strategy() -> BlacklistJWTStrategy[UP, ID]:
 def get_refresh_strategy() -> BlacklistJWTStrategy[UP, ID]:
     return BlacklistJWTStrategy(
         secret=settings.SECRET_KEY,
-        lifetime_seconds=60 * 60 * 24 * 7,  # 7 дней
+        lifetime_seconds=60 * 60 * 24 * 7,  # 7 days
         token_audience=["fastapi-users:refresh"],
     )
 
@@ -153,9 +153,9 @@ class CookieTransportCustom(CookieTransport):
 bearer_transport = BearerTransportCustom(tokenUrl="auth/jwt/login")
 refresh_transport = CookieTransportCustom(
     cookie_name="refresh_token",
-    cookie_secure=False,  # True на проде (HTTPS)
-    cookie_httponly=False,  # JS не видит
-    cookie_max_age=7 * 24 * 3600,  # 7 дней
+    cookie_secure=False,  # True in production (HTTPS)
+    cookie_httponly=False,  # JS cannot see it
+    cookie_max_age=7 * 24 * 3600,  # 7 days
 )
 
 auth_backend: AuthBackendWithRefresh[User, int] = AuthBackendWithRefresh(
