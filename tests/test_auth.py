@@ -159,7 +159,7 @@ async def test_get_current_user_unauthorized(
 async def test_get_current_user_invalid_token(
     async_client: httpx.AsyncClient,
 ) -> None:
-    """Test getting user information with invalid token."""
+    """Test to getting user information with invalid token."""
     me_url = "/auth/users/me"
     method = "get"
     headers = {"Authorization": "Bearer invalid_token_12345"}
