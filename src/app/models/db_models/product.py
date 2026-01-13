@@ -10,6 +10,7 @@ from src.app.models.db_models.base import BaseFields
 if TYPE_CHECKING:
     from src.app.models.db_models.catalog import CatalogItem
     from src.app.models.db_models.order_item import OrderItem
+    from src.app.models.db_models.product_history import ProductHistory
 
 
 class Product(BaseFields):
@@ -28,9 +29,16 @@ class Product(BaseFields):
         Numeric(10, 2), nullable=False
     )  # Current purchase price
 
+    quantity: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0
+    )  # Product quantity
+
     catalog_item: Mapped[CatalogItem] = relationship(
         "CatalogItem", back_populates="products"
     )
     order_items: Mapped[list[OrderItem]] = relationship(
         "OrderItem", back_populates="product"
+    )
+    histories: Mapped[list[ProductHistory]] = relationship(
+        "ProductHistory", back_populates="product"
     )

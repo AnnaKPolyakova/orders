@@ -18,6 +18,7 @@ class User(SQLAlchemyBaseUserTable[int], BaseFields):
     )
     revoked_tokens = relationship("RevokedToken", back_populates="user")
     orders = relationship("Order", back_populates="user")
+    histories = relationship("ProductHistory", back_populates="user")
 
 
 class RevokedToken(BaseFields):

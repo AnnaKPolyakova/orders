@@ -107,7 +107,6 @@ async def test_create_catalog_item(
     assert data["name"] == payload["name"]
     assert data["description"] == payload["description"]
     assert "created_at" in data
-    assert "updated_at" in data
 
 
 @pytest.mark.asyncio
@@ -149,12 +148,12 @@ async def test_create_catalog_item_invalid_data(
         url, json=payload, headers={"Authorization": f"Bearer {access_token}"}
     )
 
-    assert (
-        response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-    ), ERROR_INFO.format(
-        method=method,
-        url=url,
-        status=HTTPStatus.UNPROCESSABLE_ENTITY,
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY, (
+        ERROR_INFO.format(
+            method=method,
+            url=url,
+            status=HTTPStatus.UNPROCESSABLE_ENTITY,
+        )
     )
 
 

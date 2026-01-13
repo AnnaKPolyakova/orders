@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from src.app.core.config import Settings
 from src.app.db.postgres import get_postgres_provider
 from src.app.main import create_app
-from src.app.models.db_models import Base, CatalogItem, User
+from src.app.models.db_models import Base, CatalogItem, Product, User
 from src.app.services.users import (
     BlacklistJWTStrategy,
     UserManager,
@@ -21,7 +21,7 @@ from src.app.services.users import (
     get_refresh_strategy,
 )
 
-from tests.factory import CatalogItemFactory, UserFactory
+from tests.factory import CatalogItemFactory, ProductFactory, UserFactory
 
 ERROR_INFO = "Error for method: {method}, url: {url}, status: {status}"
 settings = Settings()
@@ -202,3 +202,42 @@ async def catalog_items(
         db_session.add(item)
     await db_session.commit()
     return items
+
+
+@pytest.fixture
+async def product(
+    db_session: AsyncSession, catalog_item: CatalogItem
+) -> Product:
+    """Фикстура для создания тестового продукта."""
+    db_session.add(catalog_item)
+    await db_session.flush()
+    product_obj: Product = ProductFactory.build(
+        catalog_item_id=catalog_item.id
+    )
+    db_session.add(product_obj)
+    await db_session.commit()
+    await db_session.refresh(product_obj)
+    return product_obj
+
+
+@pytest.fixture
+async def products(
+    db_session: AsyncSession,
+) -> list[Product]:
+    """Фикстура для создания списка продуктов."""
+    created_products: list[Product] = []
+    for _ in range(25):
+        catalog_item_obj: CatalogItem = CatalogItemFactory.build()
+        db_session.add(catalog_item_obj)
+        await db_session.flush()
+
+        product_obj: Product = ProductFactory.build(
+            catalog_item_id=catalog_item_obj.id
+        )
+        db_session.add(product_obj)
+        created_products.append(product_obj)
+
+    await db_session.commit()
+    for product_obj in created_products:
+        await db_session.refresh(product_obj)
+    return created_products

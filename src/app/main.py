@@ -8,6 +8,7 @@ from fastapi.responses import ORJSONResponse
 from src.app.api.auth import auth_router
 from src.app.api.catalog import catalog_router
 from src.app.api.ping import ping_router
+from src.app.api.product import product_router
 from src.app.core.config import settings
 from src.app.db.postgres import get_postgres_provider
 from src.app.db.redis import get_redis_provider
@@ -21,6 +22,7 @@ routers = [
     ping_router,
     auth_router,
     catalog_router,
+    product_router,
 ]
 
 
