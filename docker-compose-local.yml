@@ -15,6 +15,7 @@ services:
     networks:
       - structure_network
 
+
   redis:
     image: redis
     restart: always

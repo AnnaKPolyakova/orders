@@ -8,12 +8,19 @@ from asgi_lifespan import LifespanManager
 from fastapi import FastAPI
 from fastapi_users.db import SQLAlchemyUserDatabase
 from httpx import ASGITransport
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import selectinload
 from src.app.core.config import Settings
 from src.app.db.postgres import get_postgres_provider
 from src.app.main import create_app
-from src.app.models.db_models import Base, CatalogItem, Product, User
+from src.app.models.db_models import (
+    Base,
+    CatalogItem,
+    Order,
+    Product,
+    User,
+)
 from src.app.services.users import (
     BlacklistJWTStrategy,
     UserManager,
@@ -21,7 +28,13 @@ from src.app.services.users import (
     get_refresh_strategy,
 )
 
-from tests.factory import CatalogItemFactory, ProductFactory, UserFactory
+from tests.factory import (
+    CatalogItemFactory,
+    OrderFactory,
+    OrderItemFactory,
+    ProductFactory,
+    UserFactory,
+)
 
 ERROR_INFO = "Error for method: {method}, url: {url}, status: {status}"
 settings = Settings()
@@ -241,3 +254,33 @@ async def products(
     for product_obj in created_products:
         await db_session.refresh(product_obj)
     return created_products
+
+
+@pytest.fixture
+async def order(db_session: AsyncSession, user: User) -> Order:
+    """Фикстура для создания заказа."""
+    # build() вместо create()
+    order_obj = OrderFactory.build(user=user)
+    db_session.add(order_obj)
+    await db_session.flush()
+
+    # создаём продукты и позиции
+    for _ in range(5):
+        product_obj = ProductFactory.build()
+        db_session.add(product_obj)
+        await db_session.flush()  # получаем id
+
+        order_item = OrderItemFactory.build(
+            order=order_obj,
+            product=product_obj,
+            quantity=product_obj.quantity - 1,
+            price=product_obj.sell_price,
+        )
+        db_session.add(order_item)
+
+    await db_session.commit()
+    # reload с подгрузкой items
+    stmt = select(Order).options(selectinload(Order.items))
+    stmt = stmt.where(Order.id == order_obj.id)
+    order_obj = await db_session.scalar(stmt)
+    return order_obj  # type: ignore[return-value]

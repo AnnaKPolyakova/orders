@@ -1,6 +1,6 @@
 from .base import Base, BaseFields
 from .catalog import CatalogItem
-from .order import Order
+from .order import Order, PaymentStatus
 from .order_item import OrderItem
 from .product import Product
 from .product_history import ProductAction, ProductHistory
@@ -12,6 +12,7 @@ __all__ = [
     "CatalogItem",
     "Order",
     "OrderItem",
+    "PaymentStatus",
     "Product",
     "ProductAction",
     "ProductHistory",

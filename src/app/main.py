@@ -7,6 +7,7 @@ from fastapi.responses import ORJSONResponse
 
 from src.app.api.auth import auth_router
 from src.app.api.catalog import catalog_router
+from src.app.api.order import order_router
 from src.app.api.ping import ping_router
 from src.app.api.product import product_router
 from src.app.core.config import settings
@@ -23,6 +24,7 @@ routers = [
     auth_router,
     catalog_router,
     product_router,
+    order_router,
 ]
 
 

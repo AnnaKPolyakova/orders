@@ -3,7 +3,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query, Request
 
 from src.app.api.auth import fastapi_users
-from src.app.models.db_models import Product, User
+from src.app.models.db_models import Product
 from src.app.models.validators.product import (
     ProductCreate,
     ProductListResponse,
@@ -59,10 +59,11 @@ async def create_product(
     request: Request,
     product_data: ProductCreate,
     service: ProductService = Depends(get_product_service),
-    user: User = Depends(fastapi_users.current_user(active=True)),
 ) -> Product:
     """Create new product"""
-    product = await service.create_product(product_data, user_id=user.id)
+    product = await service.create_product(
+        product_data, user_id=request.state.user.id
+    )
     return product
 
 
@@ -72,10 +73,9 @@ async def update_product(
     product_id: int,
     product_data: ProductUpdate,
     service: ProductService = Depends(get_product_service),
-    user: User = Depends(fastapi_users.current_user(active=True)),
 ) -> Product:
     """Update existing product"""
     product = await service.update_product(
-        product_id, product_data, user_id=user.id
+        product_id, product_data, user_id=request.state.user.id
     )
     return product

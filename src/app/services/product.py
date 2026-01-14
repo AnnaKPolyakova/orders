@@ -182,16 +182,6 @@ class ProductService:
         await self.session.commit()
         return product
 
-    # async def delete_product(
-    #     self, product_id: int, user_id: int | None = None
-    # ) -> None:
-    #     """Delete product and save history before deletion"""
-    #     product = await self.get_product(product_id)
-    #     # Save history before deletion
-    #     await self._save_history(product, ProductAction.DELETED, user_id)
-    #     await self.session.delete(product)
-    #     await self.session.commit()
-
 
 async def get_product_service(
     session: AsyncSession = Depends(get_async_db_session),
