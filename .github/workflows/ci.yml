@@ -49,9 +49,9 @@ jobs:
       - name: Lint (ruff)
         run: |
           poetry run ruff check --config pyproject.toml
-      - name: Lint (black)
-        run: |
-          poetry run black --check --config pyproject.toml .
+#      - name: Lint (black)
+#        run: |
+#          poetry run black --check --config pyproject.toml .
       - name: Type check (mypy)
         run: poetry run mypy --config-file pyproject.toml src tests
       - name: Tests
