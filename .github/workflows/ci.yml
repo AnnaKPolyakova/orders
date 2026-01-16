@@ -53,7 +53,7 @@ jobs:
 #        run: |
 #          poetry run black --check --config pyproject.toml .
       - name: Type check (mypy)
-        run: poetry run git pull origin main --allow-unrelated-histories
+        run: poetry run mypy --config-file pyproject.toml src tests
       - name: Tests
         env:
           POSTGRES_HOST: localhost
