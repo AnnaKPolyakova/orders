@@ -1,0 +1,52 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16.1-alpine
+    container_name: db
+    restart: always
+    ports:
+      - ${POSTGRES_PORT}:5432
+    volumes:
+      - ./docker/pg/data:/var/lib/postgresql/data
+      - ./docker/pg/tmp:/tmp
+    env_file:
+      - .env
+    networks:
+      - structure_network
+
+
+  redis:
+    image: redis
+    restart: always
+    container_name: redis
+    env_file:
+      - .env
+    volumes:
+      - './docker/redis/data:/var/lib/redis/data/'
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    ports:
+    - ${REDIS_PORT}:6379
+    networks:
+      - structure_network
+
+# при необходимости использования - раскомментировать
+#  celery:
+#    container_name: structure_celery
+#    env_file:
+#      - .env
+#    build: ../structure
+#    command: celery -A common worker -l info
+#    volumes:
+#      - celery_worker:/var/lib/celery/data/
+#    depends_on:
+#      - db
+#      - redis
+#    networks:
+#      - structure_network
+
+networks:
+  structure_network:
+
+volumes:
+  celery_worker:
