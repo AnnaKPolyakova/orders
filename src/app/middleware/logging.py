@@ -15,7 +15,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable) -> Any:  # type: ignore[type-arg]
         # Get user from request.state (set by AuthMiddleware)
         user = getattr(request.state, "user", None)
-        email = user.email if user else None
+        user_id = user.id if user else None
         data: str | dict = ""  # type: ignore[type-arg]
         try:
             content_type = request.headers.get("content-type", "").lower()
@@ -42,7 +42,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         # Log request
         logger.info(
             "\nuser=%s,\ndata=%s,\nparams=%s,\napi=%s,\nmetjod=%s",
-            email,
+            user_id,
             data,
             dict(request.query_params),
             request.url.path,

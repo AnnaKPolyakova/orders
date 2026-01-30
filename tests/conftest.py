@@ -22,7 +22,7 @@ from src.app.models.db_models import (
     User,
 )
 from src.app.services.users import (
-    BlacklistJWTStrategy,
+    JWTStrategyWithBlacklist,
     UserManager,
     get_jwt_strategy,
     get_refresh_strategy,
@@ -178,7 +178,7 @@ async def access_token(
     user: User,
 ) -> str:
     """Фикстура для создания тестового пользователя."""
-    strategy: BlacklistJWTStrategy[User, int] = get_jwt_strategy()
+    strategy: JWTStrategyWithBlacklist[User, int] = get_jwt_strategy()
     return await strategy.write_token(user)
 
 
@@ -189,7 +189,7 @@ async def refresh_token(
     user: User,
 ) -> str:
     """Фикстура для создания тестового пользователя."""
-    strategy: BlacklistJWTStrategy[User, int] = get_refresh_strategy()
+    strategy: JWTStrategyWithBlacklist[User, int] = get_refresh_strategy()
     return await strategy.write_token(user)
 
 

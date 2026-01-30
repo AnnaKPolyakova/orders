@@ -33,7 +33,7 @@ from src.app.models.db_models import RevokedToken, User
 logger = logging.getLogger(__name__)
 
 
-class BlacklistJWTStrategy(JWTStrategy[UP, ID]):
+class JWTStrategyWithBlacklist(JWTStrategy[UP, ID]):
     async def read_token(
         self,
         token: str | None,
@@ -117,18 +117,18 @@ async def get_user_manager(
     yield UserManager(user_db)
 
 
-def get_jwt_strategy() -> BlacklistJWTStrategy[UP, ID]:
-    return BlacklistJWTStrategy(
+def get_jwt_strategy() -> JWTStrategyWithBlacklist[UP, ID]:
+    return JWTStrategyWithBlacklist(
         secret=settings.SECRET_KEY,
-        lifetime_seconds=900,  # 15 minutes
+        lifetime_seconds=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         token_audience=["fastapi-users:auth"],
     )
 
 
-def get_refresh_strategy() -> BlacklistJWTStrategy[UP, ID]:
-    return BlacklistJWTStrategy(
+def get_refresh_strategy() -> JWTStrategyWithBlacklist[UP, ID]:
+    return JWTStrategyWithBlacklist(
         secret=settings.SECRET_KEY,
-        lifetime_seconds=60 * 60 * 24 * 7,  # 7 days
+        lifetime_seconds=settings.REFRESH_TOKEN_EXPIRE_DAYS * 60 * 60 * 24,
         token_audience=["fastapi-users:refresh"],
     )
 

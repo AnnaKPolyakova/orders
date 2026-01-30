@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Request
 
 from src.app.api.auth import fastapi_users
 from src.app.models.db_models import CatalogItem
@@ -26,23 +26,12 @@ catalog_router = APIRouter(
 @catalog_router.get("", response_model=CatalogItemListResponse)
 async def get_catalog_items(
     request: Request,
-    page: int = Query(1, ge=1, description="Page number"),
-    page_size: int = Query(10, ge=1, le=100, description="Items per page"),
     service: CatalogService = Depends(get_catalog_service),
     pagination_service: PaginationService = Depends(get_pagination_service),
 ) -> dict[str, Any]:
     """Get paginated list of catalog items"""
-    items, total = await service.get_catalog_items(
-        page=page, page_size=page_size
-    )
-
-    return pagination_service.build_paginated_response(
-        items=items,
-        total=total,
-        page=page,
-        page_size=page_size,
-        request=request,
-    )
+    items = await service.get_catalog_items()
+    return pagination_service.build_paginated_response(items)
 
 
 @catalog_router.get("/{item_id}", response_model=CatalogItemRead)

@@ -2,10 +2,9 @@ import logging
 from collections.abc import AsyncGenerator
 
 from fastapi import Depends, HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.app.core.config import settings
 from src.app.db.postgres import get_async_db_session
 from src.app.models.db_models.catalog import CatalogItem
 from src.app.models.validators.catalog import (
@@ -22,32 +21,13 @@ class CatalogService:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_catalog_items(
-        self, page: int = 1, page_size: int = settings.PAGE_SIZE
-    ) -> tuple[list[CatalogItem], int]:
-        """Get paginated list of catalog items"""
-        page = max(page, 1)
-        if page_size < 1:
-            page_size = 10
-
-        offset = (page - 1) * page_size
-
-        # Get total count
-        count_query = select(func.count()).select_from(CatalogItem)
-        total_result = await self.session.execute(count_query)
-        total = total_result.scalar() or 0
-
+    async def get_catalog_items(self) -> list[CatalogItem]:
         # Get items
-        query = (
-            select(CatalogItem)
-            .offset(offset)
-            .limit(page_size)
-            .order_by(CatalogItem.id)
-        )
+        query = select(CatalogItem).order_by(CatalogItem.id)
         result = await self.session.execute(query)
         items = list(result.scalars().all())
 
-        return items, total
+        return items
 
     async def get_catalog_item(self, item_id: int) -> CatalogItem:
         """Get single catalog item by id"""

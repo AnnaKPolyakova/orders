@@ -25,15 +25,6 @@ class RedisClient:
     async def get_redis(self) -> Redis | None:  # type: ignore[type-arg]
         return self._redis
 
-    async def ping(self) -> bool:
-        if self._redis is None:
-            return False
-        try:
-            return await self._redis.ping() is True
-        except Exception as e:
-            logger.exception("Redis ping failed: %s", e)
-            return False
-
 
 redis_provider: RedisClient | None = None
 

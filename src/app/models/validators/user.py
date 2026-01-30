@@ -1,5 +1,5 @@
 from fastapi_users import schemas
-from pydantic.v1 import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr
 
 
 class UserCreateRequest(schemas.BaseUser[int]):

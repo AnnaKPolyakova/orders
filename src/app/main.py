@@ -3,7 +3,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
+from fastapi.responses import ORJSONResponse, Response
 
 from src.app.api.auth import auth_router
 from src.app.api.catalog import catalog_router
@@ -62,4 +62,11 @@ def create_app(test: bool) -> FastAPI:
     app.state.testing = test  # test mode flag
     for router in routers:
         app.include_router(router)
+
+    # ---------- Health Check ----------
+    @app.get("/health", tags=["health"])
+    async def health_check() -> Response:
+        """Health check endpoint for Docker"""
+        return Response(status_code=200)
+
     return app

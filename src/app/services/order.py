@@ -127,7 +127,7 @@ class OrderService:
         user: User,
     ) -> Order:
         """Update payment status of order with proper locking"""
-        # 1️⃣ Получаем order с items и продуктами с блокировкой
+        # ⃣ Получаем order с items и продуктами с блокировкой
         stmt = (
             select(Order)
             .options(selectinload(Order.items).selectinload(OrderItem.product))
@@ -138,7 +138,7 @@ class OrderService:
         if not order:
             raise HTTPException(404, "Order not found")
 
-        # 2️⃣ Проверяем количество
+        # Проверяем количество
         for item in order.items:
             if item.quantity > item.product.quantity:
                 raise HTTPException(
@@ -146,7 +146,7 @@ class OrderService:
                     f"Недостаточно товара на складе: product_id={item.product.id}",
                 )
 
-        # 3️⃣ Уменьшаем количество через сервис
+        # Уменьшаем количество через сервис
         for item in order.items:
             product_data: dict[str, Any] = {
                 "quantity": item.product.quantity - item.quantity
@@ -157,13 +157,12 @@ class OrderService:
                 user_id=user.id,
             )
 
-        # 4️⃣ Обновляем статус оплаты
+        # Обновляем статус оплаты
         order.payment_status = payment_update.payment_status.value
 
-        # 5️⃣ Коммитим
         await self.session.commit()
 
-        # 6️⃣ Возвращаем актуальный order
+        # Возвращаем актуальный order
         stmt = (
             select(Order)
             .options(selectinload(Order.items).selectinload(OrderItem.product))
