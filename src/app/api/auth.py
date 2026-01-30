@@ -37,21 +37,21 @@ fastapi_users_refresh = FastAPIUsers(
     [refresh_backend],
 )
 
-# 🔐 JWT login
+# JWT login
 auth_router.include_router(
     fastapi_users.get_auth_router(auth_backend),
     prefix="/jwt",
     tags=["users"],
 )
 
-# 📝 Registration
+# Registration
 auth_router.include_router(
     fastapi_users.get_register_router(UserRead, UserCreate),
     prefix="/users",
     tags=["users"],
 )
 
-# 👤 Users
+# Users
 auth_router.include_router(
     fastapi_users.get_users_router(UserRead, UserUpdate),
     prefix="/users",
@@ -66,7 +66,8 @@ async def refresh(
     strategy = cast(Strategy[Any, Any], auth_backend.get_strategy())
     access_token = await strategy.write_token(user)
     return JSONResponse(
-        {"access_token": access_token, "token_type": "bearer"}, 200
+        content={"access_token": access_token, "token_type": "bearer"},
+        status_code=200,
     )
 
 
@@ -80,7 +81,5 @@ async def logout_refresh(
 ) -> Response:
     # Get token from cookie
     refresh_token = request.cookies.get("refresh_token")
-    if not refresh_token:
-        return Response(401)
     strategy = cast(Strategy[Any, Any], auth_backend.get_strategy())
-    return await auth_backend.logout(strategy, user, refresh_token)
+    return await auth_backend.logout(strategy, user, refresh_token)  # type: ignore[arg-type]
