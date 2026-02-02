@@ -1,12 +1,9 @@
-import logging
+from loguru import logger
 from collections.abc import AsyncGenerator
 
 from redis.asyncio import Redis, from_url
 
 from src.app.core.config import settings
-
-logger = logging.getLogger(__name__)
-
 
 class RedisClient:
     def __init__(self, url: str):
@@ -24,15 +21,6 @@ class RedisClient:
 
     async def get_redis(self) -> Redis | None:  # type: ignore[type-arg]
         return self._redis
-
-    async def ping(self) -> bool:
-        if self._redis is None:
-            return False
-        try:
-            return await self._redis.ping() is True
-        except Exception as e:
-            logger.exception("Redis ping failed: %s", e)
-            return False
 
 
 redis_provider: RedisClient | None = None

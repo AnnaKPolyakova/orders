@@ -1,16 +1,12 @@
 import os
-from logging import config as logging_config
 from pathlib import Path
 
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 
-from src.app.core.logger import LOGGING
-
 load_dotenv()
 
 
-logging_config.dictConfig(LOGGING)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
@@ -37,6 +33,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "supersecretkey"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     @property
     def AUTOFLUSH(self) -> bool:

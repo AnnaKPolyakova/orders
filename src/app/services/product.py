@@ -1,12 +1,10 @@
-import logging
 from collections.abc import AsyncGenerator
 from typing import Any
 
 from fastapi import Depends, HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.app.core.config import settings
 from src.app.db.postgres import get_async_db_session
 from src.app.models.db_models.catalog import CatalogItem
 from src.app.models.db_models.product import Product
@@ -19,8 +17,6 @@ from src.app.models.validators.product import (
     ProductRead,
     ProductUpdate,
 )
-
-logger = logging.getLogger(__name__)
 
 
 class ProductService:
@@ -78,32 +74,12 @@ class ProductService:
         )
         self.session.add(history_record)
 
-    async def get_products(
-        self, page: int = 1, page_size: int = settings.PAGE_SIZE
-    ) -> tuple[list[Product], int]:
-        """Get paginated list of products"""
-        page = max(page, 1)
-        if page_size < 1:
-            page_size = 10
-
-        offset = (page - 1) * page_size
-
-        # Get total count
-        count_query = select(func.count()).select_from(Product)
-        total_result = await self.session.execute(count_query)
-        total = total_result.scalar() or 0
-
+    async def get_products(self) -> list[Product]:
         # Get items
-        query = (
-            select(Product)
-            .offset(offset)
-            .limit(page_size)
-            .order_by(Product.id)
-        )
+        query = select(Product).order_by(Product.id)
         result = await self.session.execute(query)
         items = list(result.scalars().all())
-
-        return items, total
+        return items
 
     async def get_product(self, product_id: int) -> Product:
         """Get single product by id"""
@@ -144,7 +120,6 @@ class ProductService:
         )
         self.session.add(new_product)
         await self.session.flush()  # Flush to get product.id
-        await self.session.refresh(new_product)
         await self._save_history(new_product, ProductAction.CREATED, user_id)
         await self.session.commit()
         return new_product

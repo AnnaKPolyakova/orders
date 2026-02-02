@@ -1,8 +1,7 @@
-import logging
 from collections.abc import AsyncGenerator
 
 from fastapi import Depends
-from sqlalchemy import text
+from loguru import logger
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -11,8 +10,6 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from src.app.core.config import settings
-
-logger = logging.getLogger(__name__)
 
 
 class PgConnector:
@@ -46,16 +43,6 @@ class PgConnector:
             logger.info("Postgres initialized")
         except Exception as e:
             logger.exception("Postgres init failed: %s", e)
-
-    async def ping(self) -> bool | None:
-        if self._engine is None:
-            return False
-        try:
-            async with self._engine.begin() as conn:
-                await conn.execute(text("SELECT 1"))
-            return True
-        except Exception as e:
-            raise RuntimeError(f"Postgres ping failed: {e}") from e
 
     async def close(self) -> None:
         if self._engine is not None:

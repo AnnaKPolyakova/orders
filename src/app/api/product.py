@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Request
 
 from src.app.api.auth import fastapi_users
 from src.app.models.db_models import Product
@@ -26,21 +26,12 @@ product_router = APIRouter(
 @product_router.get("", response_model=ProductListResponse)
 async def get_products(
     request: Request,
-    page: int = Query(1, ge=1, description="Page number"),
-    page_size: int = Query(10, ge=1, le=100, description="Items per page"),
     service: ProductService = Depends(get_product_service),
     pagination_service: PaginationService = Depends(get_pagination_service),
 ) -> dict[str, Any]:
     """Get paginated list of products"""
-    items, total = await service.get_products(page=page, page_size=page_size)
-
-    return pagination_service.build_paginated_response(
-        items=items,
-        total=total,
-        page=page,
-        page_size=page_size,
-        request=request,
-    )
+    items = await service.get_products()
+    return pagination_service.build_paginated_response(items)
 
 
 @product_router.get("/{product_id}", response_model=ProductRead)

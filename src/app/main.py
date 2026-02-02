@@ -1,26 +1,21 @@
-import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
+from fastapi.responses import ORJSONResponse, Response
 
 from src.app.api.auth import auth_router
 from src.app.api.catalog import catalog_router
 from src.app.api.order import order_router
-from src.app.api.ping import ping_router
 from src.app.api.product import product_router
 from src.app.core.config import settings
+from src.app.core.logger import setup_logging
 from src.app.db.postgres import get_postgres_provider
 from src.app.db.redis import get_redis_provider
 from src.app.middleware.auth import AuthMiddleware
 from src.app.middleware.logging import LoggingMiddleware
 
-logging.basicConfig(level=settings.APP_LOG_LEVEL)
-logger = logging.getLogger(__name__)
-
 routers = [
-    ping_router,
     auth_router,
     catalog_router,
     product_router,
@@ -29,6 +24,7 @@ routers = [
 
 
 def create_app(test: bool) -> FastAPI:
+    setup_logging()
     postgres_pr = get_postgres_provider(test=test)
     redis_pr = get_redis_provider(test=test)
 
@@ -64,4 +60,11 @@ def create_app(test: bool) -> FastAPI:
     app.state.testing = test  # test mode flag
     for router in routers:
         app.include_router(router)
+
+    # ---------- Health Check ----------
+    @app.get("/health", tags=["health"])
+    async def health_check() -> Response:
+        """Health check endpoint for Docker"""
+        return Response(status_code=200)
+
     return app
