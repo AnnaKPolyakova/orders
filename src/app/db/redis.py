@@ -1,12 +1,9 @@
-import logging
+from loguru import logger
 from collections.abc import AsyncGenerator
 
 from redis.asyncio import Redis, from_url
 
 from src.app.core.config import settings
-
-logger = logging.getLogger(__name__)
-
 
 class RedisClient:
     def __init__(self, url: str):

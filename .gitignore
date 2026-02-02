@@ -14,3 +14,6 @@ docker
 .idea
 
 /tests/functional/.env_test
+
+# logs
+logs

@@ -1,4 +1,3 @@
-import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -10,13 +9,11 @@ from src.app.api.catalog import catalog_router
 from src.app.api.order import order_router
 from src.app.api.product import product_router
 from src.app.core.config import settings
+from src.app.core.logger import setup_logging
 from src.app.db.postgres import get_postgres_provider
 from src.app.db.redis import get_redis_provider
 from src.app.middleware.auth import AuthMiddleware
 from src.app.middleware.logging import LoggingMiddleware
-
-logging.basicConfig(level=settings.APP_LOG_LEVEL)
-logger = logging.getLogger(__name__)
 
 routers = [
     auth_router,
@@ -27,6 +24,7 @@ routers = [
 
 
 def create_app(test: bool) -> FastAPI:
+    setup_logging()
     postgres_pr = get_postgres_provider(test=test)
     redis_pr = get_redis_provider(test=test)
 

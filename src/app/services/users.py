@@ -1,4 +1,3 @@
-import logging
 from collections.abc import AsyncGenerator
 from typing import cast
 
@@ -20,6 +19,7 @@ from fastapi_users.authentication.transport import (
 )
 from fastapi_users.db import SQLAlchemyUserDatabase
 from fastapi_users.models import ID, UP
+from loguru import logger
 
 # from httpx import Response
 from sqlalchemy import select
@@ -29,8 +29,6 @@ from starlette.responses import JSONResponse
 from src.app.core.config import settings
 from src.app.db.postgres import get_async_db_session, get_postgres_provider
 from src.app.models.db_models import RevokedToken, User
-
-logger = logging.getLogger(__name__)
 
 
 class JWTStrategyWithBlacklist(JWTStrategy[UP, ID]):

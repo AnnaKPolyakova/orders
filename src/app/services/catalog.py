@@ -1,4 +1,3 @@
-import logging
 from collections.abc import AsyncGenerator
 
 from fastapi import Depends, HTTPException, status
@@ -11,8 +10,6 @@ from src.app.models.validators.catalog import (
     CatalogItemCreate,
     CatalogItemUpdate,
 )
-
-logger = logging.getLogger(__name__)
 
 
 class CatalogService:

@@ -1,7 +1,7 @@
-import logging
 from collections.abc import AsyncGenerator
 
 from fastapi import Depends
+from loguru import logger
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -10,8 +10,6 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from src.app.core.config import settings
-
-logger = logging.getLogger(__name__)
 
 
 class PgConnector:

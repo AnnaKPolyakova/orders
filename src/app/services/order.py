@@ -1,4 +1,3 @@
-import logging
 from collections.abc import AsyncGenerator
 from typing import Any
 
@@ -16,8 +15,6 @@ from src.app.models.validators.order import (
 )
 from src.app.models.validators.product import ProductUpdate
 from src.app.services import ProductService
-
-logger = logging.getLogger(__name__)
 
 
 class OrderService:

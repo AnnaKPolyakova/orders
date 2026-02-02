@@ -1,4 +1,3 @@
-import logging
 from typing import Any, cast
 
 from fastapi import APIRouter, Depends, Request, Response
@@ -17,8 +16,6 @@ from src.app.services.users import (
     get_user_manager,
     refresh_backend,
 )
-
-logger = logging.getLogger(__name__)
 
 auth_router = APIRouter(
     prefix="/auth",

@@ -1,16 +1,14 @@
-import logging
 from collections.abc import Callable
 from typing import Any, cast
 
 from fastapi import Request
 from fastapi_users.authentication import Strategy
 from fastapi_users.db import SQLAlchemyUserDatabase
+from loguru import logger
 from src.app.db.postgres import get_postgres_provider
 from src.app.models.db_models import User
 from src.app.services.users import UserManager, auth_backend
 from starlette.middleware.base import BaseHTTPMiddleware
-
-logger = logging.getLogger(__name__)
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
