@@ -42,23 +42,69 @@ services:
     networks:
       - structure_network
 
-# при необходимости использования - раскомментировать
-#  celery:
-#    container_name: structure_celery
-#    env_file:
-#      - .env
-#    build: ../structure
-#    command: celery -A common worker -l info
-#    volumes:
-#      - celery_worker:/var/lib/celery/data/
-#    depends_on:
-#      - db
-#      - redis
-#    networks:
-#      - structure_network
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./docker/loki/local-config.yaml:/etc/loki/local-config.yaml:ro  # конфиг
+      - ./docker/loki/index:/loki/index      # индекс
+      - ./docker/loki/chunks:/loki/chunks    # chunks
+      - ./docker/loki/cache:/loki/cache      # кеш
+      - ./docker/loki/tmp:/loki/tmp      # кеш
+      - ./loki/local-config.yaml:/etc/loki/local-config.yaml:ro
+      #    command: -config.file=/etc/loki/loki-config.yaml
+    networks:
+        - structure_network
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail
+    ports:
+        - "9080:9080"
+    volumes:
+#      - ./promtail:/etc/promtail
+      - ./docker/promtail/tmp:/tmp
+      - ./logs:/logs
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./promtail/config.yaml:/etc/promtail/config.yaml
+    ulimits:
+        nofile:
+            soft: 65536
+            hard: 65536
+    command: -config.file=/etc/promtail/config.yaml
+    privileged: true
+    networks:
+        - structure_network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - './prometheus/prometheus.yml:/etc/prometheus/prometheus.yml'
+      - './docker/prometheus/data:/var/lib/redis/data/'
+    networks:
+        - structure_network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    depends_on:
+      - prometheus
+      - loki
+    ports:
+      - "3000:3000"
+    volumes:
+        - './grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml'
+        - './docker/grafana/data:/var/lib/grafana'
+    env_file:
+      - .env
+    networks:
+        - structure_network
 
 networks:
   structure_network:
-
-volumes:
-  celery_worker:
