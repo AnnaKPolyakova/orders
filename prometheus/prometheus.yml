@@ -1,0 +1,13 @@
+global:
+#    как часто Prometheus будет опрашивать все источники метрик (targets)
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'fastapi'
+    metrics_path: /metrics
+    static_configs:
+# конкретные адреса, где Prometheus будет искать метрики.
+      - targets: ['host.docker.internal:8000']
+        labels:
+            job: fastapi
+            compose_service: app-api

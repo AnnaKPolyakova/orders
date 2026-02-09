@@ -2,7 +2,8 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse, Response
+from fastapi.responses import ORJSONResponse
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from src.app.api.auth import auth_router
 from src.app.api.catalog import catalog_router
@@ -14,6 +15,7 @@ from src.app.db.postgres import get_postgres_provider
 from src.app.db.redis import get_redis_provider
 from src.app.middleware.auth import AuthMiddleware
 from src.app.middleware.logging import LoggingMiddleware
+from src.app.middleware.prometheus import MetricsMiddleware
 
 routers = [
     auth_router,
@@ -55,16 +57,23 @@ def create_app(test: bool) -> FastAPI:
         AuthMiddleware
     )  # Must be first to set user in request.state
     app.add_middleware(LoggingMiddleware)
+    app.add_middleware(MetricsMiddleware)
 
+    Instrumentator(
+        # Собираем всё, что можно
+        should_group_status_codes=False,  # Не группировать статус коды (200, 404 и т.д.)
+        should_ignore_untemplated=False,  # Считать даже пути без шаблона
+        excluded_handlers=["/metrics"],  # Исключаем сам endpoint метрик
+        should_instrument_requests_inprogress=True,  # Счётчик текущих запросов
+    ).instrument(app).expose(
+        app,
+        endpoint="/metrics",
+        include_in_schema=False,
+    )
     # ---------- State ----------
     app.state.testing = test  # test mode flag
+
     for router in routers:
         app.include_router(router)
-
-    # ---------- Health Check ----------
-    @app.get("/health", tags=["health"])
-    async def health_check() -> Response:
-        """Health check endpoint for Docker"""
-        return Response(status_code=200)
 
     return app

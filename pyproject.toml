@@ -33,7 +33,9 @@ dependencies = [
     "fastapi-users-db-sqlalchemy (>=7.0.0,<8.0.0)",
     "email-validator (>=2.3.0,<3.0.0)",
     "factory-boy (>=3.3.3,<4.0.0)",
-    "loguru (>=0.7.3,<0.8.0)"
+    "loguru (>=0.7.3,<0.8.0)",
+    "prometheus-client (>=0.24.1,<0.25.0)",
+    "prometheus-fastapi-instrumentator (>=7.1.0,<8.0.0)"
 ]
 
 [dependency-groups]
